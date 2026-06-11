@@ -66,8 +66,18 @@ const pool = new Pool({
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
     console.log("Neon PostgreSQL 所有資料表初始化成功！");
+    // server.js 中的資料庫初始化區塊 (補上第 4 張表)
+    await pool.query(`
+    CREATE TABLE IF NOT EXISTS scores (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        score INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    `);
+    console.log("Neon PostgreSQL 所有資料表（含分數表）初始化成功！");
+
   } catch (err) {
     console.error("資料庫初始化失敗:", err);
   }
@@ -75,6 +85,9 @@ const pool = new Pool({
 
 const forumRoutes = require('./routes/forum')(pool);
 app.use('/api', forumRoutes); // 所有論壇 API 都會以 /api 開頭
+
+const gameRoutes = require('./routes/game')(pool);
+app.use('/api/game', gameRoutes);
 
 // 載入 Passport 設定策略
 require('./config/passport')(passport, pool);
