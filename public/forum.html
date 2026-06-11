@@ -3,20 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雲端社群論壇</title>
+    <title>雲端社群討論區</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
-        .nav { display: flex; justify-content: space-between; background: white; padding: 15px 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        :root { --bg: #0f172a; --panel: #1e293b; --text: #f8fafc; --primary: #3b82f6; --primary-hover: #2563eb; }
+        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
         .container { max-width: 800px; margin: 0 auto; }
-        .form-box, .post-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #0056b3; }
-        .post-title { margin: 0 0 10px 0; color: #333; }
-        .meta { font-size: 12px; color: #888; margin-bottom: 15px; }
-        .comment-section { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 15px; }
-        .comment { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 14px; }
+        
+        /* 導覽列 */
+        .nav { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 15px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; }
+        .nav h2 { margin: 0; font-size: 20px; letter-spacing: 1px; }
+        
+        /* 發文面板 */
+        .form-box { background: var(--panel); padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 25px; }
+        .form-box h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; color: #38bdf8; }
+        
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: #020617; border: 1px solid #334155; border-radius: 8px; box-sizing: border-box; color: var(--text); font-size: 15px; transition: border-color 0.2s; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        
+        button { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        
+        /* 文章卡片 */
+        .post-card { background: var(--panel); padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 20px; border-left: 4px solid #334155; transition: border-color 0.3s; }
+        .post-card:hover { border-left-color: var(--primary); }
+        .post-title { margin: 0 0 8px 0; color: #f1f5f9; font-size: 20px; }
+        .meta { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+        .post-content { color: #cbd5e1; line-height: 1.6; white-space: pre-line; margin-bottom: 20px; }
+        
+        /* 展開按鈕 */
+        .toggle-comments-btn { background: #334155; color: #94a3b8; padding: 8px 16px; font-size: 14px; border-radius: 6px; transition: all 0.2s; }
+        .toggle-comments-btn:hover { background: #475569; color: var(--text); }
+        
+        /* 留言區塊 (預設隱藏) */
+        .comment-section { background: #020617; padding: 20px; border-radius: 8px; margin-top: 15px; border: 1px solid #1e293b; display: none; }
+        .comment-section h4 { margin-top: 0; margin-bottom: 15px; font-size: 15px; color: #94a3b8; }
+        
+        .comment-list { margin-bottom: 15px; }
+        .comment { border-bottom: 1px solid #1e293b; padding: 10px 0; font-size: 14px; line-height: 1.5; }
         .comment:last-child { border-bottom: none; }
+        .comment-meta { font-size: 11px; color: #475569; margin-top: 4px; }
+        
+        .comment-input-group { display: flex; gap: 10px; margin-top: 15px; }
+        .comment-input-group input { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -25,8 +54,8 @@
     <div class="nav">
         <h2>💬 雲端討論區</h2>
         <div>
-            <span id="welcome-msg"></span>
-            <button onclick="location.href='/dashboard.html'" style="background: #6c757d;">會員中心</button>
+            <span id="welcome-msg" style="color: #94a3b8; font-size: 14px; margin-right: 10px;"></span>
+            <button onclick="location.href='/dashboard.html'" style="background: #475569;">會員中心</button>
         </div>
     </div>
 
@@ -34,7 +63,7 @@
         <h3>發表新文章</h3>
         <form id="post-form">
             <input type="text" id="post-title" placeholder="文章標題" required>
-            <textarea id="post-content" rows="3" placeholder="想分享些什麼嗎..." required></textarea>
+            <textarea id="post-content" rows="4" placeholder="今天想聊點什麼嗎..." required></textarea>
             <button type="submit">發布文章</button>
         </form>
     </div>
@@ -44,16 +73,17 @@
 </div>
 
 <script>
-    // 檢查登入狀態與載入討論區
+    // 初始化頁面
     async function initForum() {
         const userRes = await fetch('/auth/current-user');
         const userData = await userRes.json();
         
         if (userData.loggedIn) {
-            document.getElementById('welcome-msg').innerText = `嗨，${userData.user.name} ！ `;
+            document.getElementById('welcome-msg').innerText = `嗨，${userData.user.name} ！`;
         } else {
             alert('論壇功能需要登入！');
             window.location.href = '/';
+            return;
         }
         loadPosts();
     }
@@ -65,26 +95,45 @@
         const container = document.getElementById('posts-container');
         container.innerHTML = '';
 
-        for (let post of posts) {
+        posts.forEach(post => {
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
             postCard.innerHTML = `
                 <h3 class="post-title">${post.title}</h3>
-                <div class="meta">由 ${post.author_name} 發表於 ${new Date(post.created_at).toLocaleString()}</div>
-                <p style="white-space: pre-line;">${post.content}</p>
+                <div class="meta">由 <strong>${post.author_name}</strong> 發表於 ${new Date(post.created_at).toLocaleString()}</div>
+                <div class="post-content">${post.content}</div>
                 
-                <div class="comment-section">
-                    <h4>留言回覆</h4>
-                    <div id="comments-${post.id}">載入留言中...</div>
-                    <div style="margin-top:10px; display:flex;">
-                        <input type="text" id="input-${post.id}" placeholder="寫下你的回覆..." style="margin-bottom:0; margin-right:10px;">
-                        <button onclick="submitComment(${post.id})">提交</button>
+                <button class="toggle-comments-btn" id="btn-${post.id}" onclick="toggleComments(${post.id})">💬 顯示回覆 / 留言</button>
+                
+                <div class="comment-section" id="section-${post.id}">
+                    <h4>全部回覆</h4>
+                    <div class="comment-list" id="comments-${post.id}">載入中...</div>
+                    <div class="comment-input-group">
+                        <input type="text" id="input-${post.id}" placeholder="寫下你的回覆..." autocomplete="off">
+                        <button onclick="submitComment(${post.id})">回覆</button>
                     </div>
                 </div>
             `;
             container.appendChild(postCard);
-            // 異步讀取該文章的留言
-            loadComments(post.id);
+        });
+    }
+
+    // 切換顯示/隱藏留言區塊 (核心新功能)
+    async function toggleComments(postId) {
+        const section = document.getElementById(`section-${postId}`);
+        const btn = document.getElementById(`btn-${postId}`);
+        
+        if (section.style.display === 'none' || section.style.display === '') {
+            // 展開：先去撈最新留言，再顯示
+            await loadComments(postId);
+            section.style.display = 'block';
+            btn.innerText = '▲ 收起回覆';
+            btn.style.background = '#475569';
+        } else {
+            // 隱藏
+            section.style.display = 'none';
+            btn.innerText = '💬 顯示回覆 / 留言';
+            btn.style.background = '#334155';
         }
     }
 
@@ -92,17 +141,17 @@
     async function loadComments(postId) {
         const res = await fetch(`/api/posts/${postId}/comments`);
         const comments = await res.json();
-        const commentDiv = document.getElementById(`comments-${postId}`);
+        const commentList = document.getElementById(`comments-${postId}`);
         
-        if(comments.length === 0) {
-            commentDiv.innerHTML = `<p style="color:#aaa; font-size:13px;">目前尚無留言。</p>`;
+        if (comments.length === 0) {
+            commentList.innerHTML = `<p style="color:#475569; font-size:13px; margin:0;">目前尚無任何回覆。</p>`;
             return;
         }
 
-        commentDiv.innerHTML = comments.map(c => `
+        commentList.innerHTML = comments.map(c => `
             <div class="comment">
-                <strong>${c.author_name}:</strong> ${c.content} 
-                <span style="font-size:10px; color:#aaa; margin-left:10px;">${new Date(c.created_at).toLocaleTimeString()}</span>
+                <strong style="color: #38bdf8;">${c.author_name}</strong>：<span>${c.content}</span>
+                <div class="comment-meta">${new Date(c.created_at).toLocaleString()}</div>
             </div>
         `).join('');
     }
@@ -124,15 +173,15 @@
             document.getElementById('post-content').value = '';
             loadPosts();
         } else {
-            alert('發表失敗，請重新登入');
+            alert('發表失敗，請檢查登入狀態');
         }
     });
 
     // 新增留言
     async function submitComment(postId) {
         const input = document.getElementById(`input-${postId}`);
-        const content = input.value;
-        if(!content) return;
+        const content = input.value.trim();
+        if (!content) return;
 
         const res = await fetch(`/api/posts/${postId}/comments`, {
             method: 'POST',
@@ -140,15 +189,15 @@
             body: JSON.stringify({ content })
         });
 
-        if(res.ok) {
+        if (res.ok) {
             input.value = '';
+            // 留言成功後立即重新整理該文章的留言板
             loadComments(postId);
         } else {
             alert('留言失敗');
         }
     }
 
-    // 頁面初始化
     initForum();
 </script>
 </body>
