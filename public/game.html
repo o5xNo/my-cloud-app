@@ -3,42 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>雲端貪吃蛇與全球排行</title>
+    <title>雲端貪吃蛇爭霸戰</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; text-align: center; }
-        .nav { display: flex; justify-content: space-between; max-width: 950px; margin: 0 auto 20px auto; background: white; padding: 15px 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        :root { --bg: #0f172a; --panel: #1e293b; --text: #f8fafc; }
+        body { font-family: 'PingFang TC', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .nav { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto 20px auto; background: var(--panel); padding: 15px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .nav h2 { margin: 0; font-size: 20px; letter-spacing: 1px; }
         .game-layout { display: flex; justify-content: center; gap: 30px; max-width: 1000px; margin: 0 auto; flex-wrap: wrap; }
-        canvas { background: #222; border: 4px solid #333; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; }
-        .sidebar { width: 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: left; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
-        button:hover { background: #0056b3; }
-        ol { padding-left: 20px; }
-        li { margin-bottom: 8px; font-size: 16px; }
-        .score-highlight { font-size: 20px; color: #dc3545; font-weight: bold; }
+        
+        /* 畫布區 */
+        .canvas-container { position: relative; }
+        canvas { background: #020617; border: 4px solid #334155; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: pointer; }
+        #current-score { font-size: 24px; margin: 0 0 10px 0; color: #10b981; font-weight: bold; text-align: left; }
+        
+        /* 排行榜與控制器邊欄 */
+        .sidebar { width: 320px; display: flex; flex-direction: column; gap: 20px; }
+        .panel { background: var(--panel); padding: 24px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .panel h3 { margin-top: 0; margin-bottom: 15px; font-size: 18px; border-bottom: 2px solid #334155; padding-bottom: 8px; }
+        
+        /* 排行榜列表樣式 */
+        ol { padding-left: 0; list-style: none; margin: 0; }
+        li { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 8px; background: #334155; border-radius: 6px; font-size: 15px; }
+        li:nth-child(1) { background: linear-gradient(90deg, #b45309, #334155); border-left: 4px solid #fbbf24; }
+        li:nth-child(2) { background: linear-gradient(90deg, #1e3a8a, #334155); border-left: 4px solid #94a3b8; }
+        li:nth-child(3) { background: linear-gradient(90deg, #78350f, #334155); border-left: 4px solid #b45309; }
+        .rank-tag { font-weight: bold; margin-right: 8px; }
+        .score-tag { color: #38bdf8; font-weight: bold; }
+
+        /* WASD 鍵盤視覺回饋區 */
+        .controls-hint { display: flex; flex-direction: column; align-items: center; gap: 5px; margin-top: 10px; }
+        .keyboard-row { display: flex; gap: 5px; }
+        .key { width: 45px; height: 45px; background: #334155; border: 2px solid #475569; border-radius: 6px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; transition: all 0.1s; color: #94a3b8; }
+        .key.active { background: #10b981; color: white; border-color: #34d399; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); transform: scale(0.95); }
+
+        button { padding: 10px 20px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
+        button:hover { background: #4338ca; }
     </style>
 </head>
 <body>
 
 <div class="nav">
-    <h2>🐍 雲端競技：貪吃蛇小遊戲</h2>
-    <button onclick="location.href='/dashboard.html'" style="background:#6c757d;">回會員中心</button>
+    <h2>🐍 雲端競技場：經典貪吃蛇</h2>
+    <button onclick="location.href='/dashboard.html'">返回會員中心</button>
 </div>
 
 <div class="game-layout">
-    <div>
-        <h3 id="current-score">目前分數: 0</h3>
+    <div class="canvas-container">
+        <div id="current-score">SCORE: 0</div>
         <canvas id="gameCanvas" width="400" height="400"></canvas>
-        <p style="color: #666; font-size: 14px;">提示：點擊畫布內的「START」開始遊戲，使用鍵盤方向鍵 (↑ ↓ ← →) 控制</p>
     </div>
 
     <div class="sidebar">
-        <h3>🏆 榮譽排行榜</h3>
-        <p>您的歷史最高分：<span id="my-best" class="score-highlight">0</span> 分</p>
-        <hr>
-        <h4>🌍 全球前 10 名</h4>
-        <ol id="global-board">
-            <li>載入中...</li>
-        </ol>
+        <div class="panel">
+            <h3>🏆 榮譽排行榜</h3>
+            <p style="margin: 0 0 15px 0;">您的最高紀錄：<span id="my-best" style="color:#ef4444; font-size:20px; font-weight:bold;">0</span></p>
+            <h4 style="margin: 10px 0;">全球前 10 強</h4>
+            <ol id="global-board">
+                <li>載入中...</li>
+            </ol>
+        </div>
+
+        <div class="panel">
+            <h3>🎮 操作控制器</h3>
+            <div class="controls-hint">
+                <div class="keyboard-row">
+                    <div class="key" id="key-W">W</div>
+                </div>
+                <div class="keyboard-row">
+                    <div class="key" id="key-A">A</div>
+                    <div class="key" id="key-S">S</div>
+                    <div class="key" id="key-D">D</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 15px;">支援鍵盤 WASD 與 方向鍵 操控</p>
+        </div>
     </div>
 </div>
 
@@ -48,74 +86,62 @@
     const grid = 20;
     let count = 0;
     let score = 0;
-    let gameStarted = false; // 新增：控制遊戲是否開始的開關
+    let gameStarted = false;
 
     let snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
     let apple = { x: 320, y: 320 };
 
-    // 驗證登入與載入排行榜
     async function init() {
         const userRes = await fetch('/auth/current-user');
         const userData = await userRes.json();
         if (!userData.loggedIn) {
-            alert('請先登入才能遊玩！');
+            alert('請先登入！');
             window.location.href = '/';
             return;
         }
         loadLeaderboard();
-        
-        // 監聽畫布點擊事件（用來點擊開始）
         canvas.addEventListener('click', startGame);
-        
-        // 先繪製初始畫面（未開始狀態）
         drawStartScreen();
         requestAnimationFrame(gameLoop);
     }
 
-    // 繪製「點擊開始」的待機畫面
     function drawStartScreen() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 畫個簡單的背景裝飾
-        ctx.fillStyle = "rgba(40, 167, 69, 0.2)";
-        ctx.fillRect(50, 150, 300, 100);
+        ctx.fillStyle = "rgba(16, 185, 129, 0.1)";
+        ctx.fillRect(40, 150, 320, 100);
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(40, 150, 320, 100);
 
-        // 繪製 START 按鈕文字
-        ctx.fillStyle = "#28a745";
-        ctx.font = "bold 30px Arial";
+        ctx.fillStyle = "#10b981";
+        ctx.font = "bold 24px 'Courier New', sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("CLICK TO START", canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText("CLICK TO START", canvas.width / 2, canvas.height / 2 + 8);
     }
 
-    // 觸發遊戲開始
     function startGame() {
         if (!gameStarted) {
             gameStarted = true;
-            canvas.style.cursor = "default"; // 隱藏點擊手勢
+            canvas.style.cursor = "default";
         }
     }
 
     function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min)) + min; }
 
-    // 遊戲主迴圈
     function gameLoop() {
         requestAnimationFrame(gameLoop);
-
-        // 如果還沒按下開始，就一直停留在待機畫面
         if (!gameStarted) {
             drawStartScreen();
             return;
         }
 
-        // 關鍵修改：將 count < 6 改為 12，讓蛇的更新頻率慢下一倍！
-        if (++count < 12) return; 
+        if (++count < 12) return; // 減速一半
         count = 0;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         snake.x += snake.dx;
         snake.y += snake.dy;
 
-        // 撞牆死掉
         if (snake.x < 0 || snake.x >= canvas.width || snake.y < 0 || snake.y >= canvas.height) {
             gameOver();
             return;
@@ -124,80 +150,104 @@
         snake.cells.unshift({ x: snake.x, y: snake.y });
         if (snake.cells.length > snake.maxCells) snake.cells.pop();
 
-        // 畫蘋果
-        ctx.fillStyle = 'red';
-        ctx.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+        // 畫蘋果 (帶圓角)
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(apple.x + grid/2, apple.y + grid/2, grid/2 - 2, 0, 2 * Math.PI);
+        ctx.fill();
 
         // 畫蛇
-        ctx.fillStyle = '#28a745';
         snake.cells.forEach(function (cell, index) {
+            ctx.fillStyle = index === 0 ? '#34d399' : '#10b981'; // 蛇頭顏色稍亮
             ctx.fillRect(cell.x, cell.y, grid - 1, grid - 1);
 
-            // 蛇吃到自己死掉
             if (index > 0 && cell.x === snake.x && cell.y === snake.y) {
                 gameOver();
             }
 
-            // 吃到蘋果
             if (cell.x === apple.x && cell.y === apple.y) {
                 snake.maxCells++;
                 score += 10;
-                document.getElementById('current-score').innerText = "目前分數: " + score;
+                document.getElementById('current-score').innerText = "SCORE: " + score;
                 apple.x = getRandomInt(0, 20) * grid;
                 apple.y = getRandomInt(0, 20) * grid;
             }
         });
     }
 
-    // 遊戲結束
     async function gameOver() {
-        gameStarted = false; // 重設為未開始狀態
+        gameStarted = false;
         canvas.style.cursor = "pointer";
+        alert(`GAME OVER! 最終得分：${score}`);
         
-        alert(`遊戲結束！您的分數是：${score}`);
-        
-        // 將分數發送到後端資料庫
         await fetch('/api/game/scores', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ score })
         });
 
-        // 重新初始化蛇的狀態
         snake = { x: 160, y: 160, dx: grid, dy: 0, cells: [], maxCells: 4 };
         apple = { x: getRandomInt(0, 20) * grid, y: getRandomInt(0, 20) * grid };
         score = 0;
-        document.getElementById('current-score').innerText = "目前分數: 0";
-        
-        // 重新整理排行榜
+        document.getElementById('current-score').innerText = "SCORE: 0";
         loadLeaderboard();
     }
 
-    // 獲取排行榜
     async function loadLeaderboard() {
         const res = await fetch('/api/game/leaderboard');
         const data = await res.json();
-        
         document.getElementById('my-best').innerText = data.personal;
         
         const board = document.getElementById('global-board');
         if (data.global.length === 0) {
-            board.innerHTML = '<li>尚無紀錄，快來搶頭香！</li>';
+            board.innerHTML = '<li>尚無紀錄</li>';
             return;
         }
-        board.innerHTML = data.global.map(row => `
-            <li><strong>${row.name}</strong> - <span style="color:#007bff">${row.max_score} 分</span></li>
+        
+        const medals = ['🥇', '🥈', '🥉'];
+        board.innerHTML = data.global.map((row, i) => `
+            <li>
+                <div>
+                    <span class="rank-tag">${medals[i] || (i + 1) + '.'}</span>
+                    <span>${row.name}</span>
+                </div>
+                <span class="score-tag">${row.max_score} pts</span>
+            </li>
         `).join('');
     }
 
-    // 鍵盤事件監聽
+    // 鍵盤監聽 + 鍵盤視覺高亮回饋
     document.addEventListener('keydown', function (e) {
-        if (!gameStarted) return; // 如果沒開始，按方向鍵沒反應
+        // 去除高亮的所有 active
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+
+        if (!gameStarted) return;
         
-        if (e.which === 37 && snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
-        else if (e.which === 38 && snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
-        else if (e.which === 39 && snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
-        else if (e.which === 40 && snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+        // 左 (A)
+        if ((e.which === 37 || e.which === 65)) {
+            document.getElementById('key-A').classList.add('active');
+            if (snake.dx === 0) { snake.dx = -grid; snake.dy = 0; }
+        }
+        // 上 (W)
+        else if ((e.which === 38 || e.which === 87)) {
+            document.getElementById('key-W').classList.add('active');
+            if (snake.dy === 0) { snake.dy = -grid; snake.dx = 0; }
+        }
+        // 右 (D)
+        else if ((e.which === 39 || e.which === 68)) {
+            document.getElementById('key-D').classList.add('active');
+            if (snake.dx === 0) { snake.dx = grid; snake.dy = 0; }
+        }
+        // 下 (S)
+        else if ((e.which === 40 || e.which === 83)) {
+            document.getElementById('key-S').classList.add('active');
+            if (snake.dy === 0) { snake.dy = grid; snake.dx = 0; }
+        }
+    });
+
+    // 放開按鍵時移除高亮
+    document.addEventListener('keyup', function() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
     });
 
     init();
