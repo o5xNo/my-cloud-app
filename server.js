@@ -31,8 +31,10 @@ const pool = new Pool({
 });
 
 // 初始化資料表
+// server.js 中的資料庫初始化區塊
 (async () => {
   try {
+    // 1. 使用者表
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -42,11 +44,37 @@ const pool = new Pool({
         name TEXT
       )
     `);
-    console.log("Neon PostgreSQL 資料表初始化成功！");
+
+    // 2. 文章表 (新增)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS posts (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 3. 留言表 (新增)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comments (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log("Neon PostgreSQL 所有資料表初始化成功！");
   } catch (err) {
     console.error("資料庫初始化失敗:", err);
   }
 })();
+
+const forumRoutes = require('./routes/forum')(pool);
+app.use('/api', forumRoutes); // 所有論壇 API 都會以 /api 開頭
 
 // 載入 Passport 設定策略
 require('./config/passport')(passport, pool);
