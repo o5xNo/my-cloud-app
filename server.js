@@ -1,21 +1,35 @@
-// server.js
-const express = require('express'); // 1. 引入 Express (原本漏掉了)
+// server.js 完整版
+const express = require('express');
 const { Pool } = require('pg');
+const session = require('express-session'); // 引入 Session
+const passport = require('passport');       // 引入 Passport
 require('dotenv').config();
 
-const app = express(); // 2. 初始化 Express 實例 (原本漏掉了)
+const app = express();
 
-// 中間件設定 (解析 JSON 與表單資料)
+// 中間件設定
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 使用 Neon 提供的連線字串建立連線池
+// 設定 Session 儲存機制
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback_secret_key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // 在 Render 免費層（有隨附 SSL）一般設為 false 即可，若強迫 https 可調為 true
+}));
+
+// 初始化 Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// 連接 Neon PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Neon 要求必須使用 SSL 安全連線
+  ssl: { rejectUnauthorized: false }
 });
 
-// 初始化 PostgreSQL 資料表
+// 初始化資料表
 (async () => {
   try {
     await pool.query(`
@@ -33,16 +47,19 @@ const pool = new Pool({
   }
 })();
 
-// 3. 新增一個簡單的根路由 (防止 Render 檢查首頁時回傳 404)
+// 載入 Passport 設定策略
+require('./config/passport')(passport, pool);
+
+// 載入並掛載驗證路由 (註冊、登入、登出都會在 /auth 路徑下)
+const authRoutes = require('./routes/auth')(pool);
+app.use('/auth', authRoutes);
+
+// 首頁
 app.get('/', (req, res) => {
-  res.send('<h1>Node.js 雲端伺服器運行中！</h1>');
+  res.send('<h1>Node.js 雲端伺服器運行中！</h1><p>API 驗證功能已就緒。</p>');
 });
 
-// 這裡稍後可以串接你的驗證路由，例如：
-// const authRoutes = require('./routes/auth')(pool);
-// app.use('/auth', authRoutes);
-
-// 監聽連接埠
+// 監聽埠
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`伺服器正運作於 Port: ${PORT}`);
