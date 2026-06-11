@@ -25,6 +25,10 @@ const pool = new Pool({
     console.error("資料庫初始化失敗:", err);
   }
 })();
+const PORT = process.env.PORT || 3000;
 
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`伺服器正運作於 Port: ${PORT}`);
+});
 // 將 pool 傳遞給你的路由與 Passport 設定
 // 例如：app.use('/auth', authRoutes(pool));
