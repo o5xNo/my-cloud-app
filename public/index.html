@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雲端驗證系統 - 登入/註冊</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        h2 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #666; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .switch-btn { text-align: center; margin-top: 15px; color: #007bff; cursor: pointer; text-decoration: underline; }
+        .error-msg { color: red; text-align: center; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-box">
+        <h2>會員登入</h2>
+        <div id="login-error" class="error-msg"></div>
+        <form id="login-form">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" required>
+            </div>
+            <div class="form-group">
+                <label>密碼</label>
+                <input type="password" id="login-password" required>
+            </div>
+            <button type="submit">登入</button>
+        </form>
+        <div class="switch-btn" onclick="toggleForm()">還沒有帳號？前往註冊</div>
+    </div>
+
+    <div id="register-box" style="display: none;">
+        <h2>建立帳號</h2>
+        <div id="register-error" class="error-msg" style="color: green;"></div>
+        <form id="register-form">
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" id="reg-name" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" required>
+            </div>
+            <div class="form-group">
+                <label>密碼</label>
+                <input type="password" id="reg-password" required>
+            </div>
+            <button type="submit">註冊</button>
+        </form>
+        <div class="switch-btn" onclick="toggleForm()">已有帳號？前往登入</div>
+    </div>
+</div>
+
+<script>
+    // 切換登入與註冊介面
+    function toggleForm() {
+        const loginBox = document.getElementById('login-box');
+        const registerBox = document.getElementById('register-box');
+        if (loginBox.style.display === 'none') {
+            loginBox.style.display = 'block';
+            registerBox.style.display = 'none';
+        } else {
+            loginBox.style.display = 'none';
+            registerBox.style.display = 'block';
+        }
+    }
+
+    // 處理註冊
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value;
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const errorDiv = document.getElementById('register-error');
+
+        const res = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        
+        errorDiv.style.display = 'block';
+        if (res.status === 201) {
+            errorDiv.style.color = 'green';
+            errorDiv.innerText = data.message + ' 請切換至登入。';
+        } else {
+            errorDiv.style.color = 'red';
+            errorDiv.innerText = data.message;
+        }
+    });
+
+    // 處理登入
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorDiv = document.getElementById('login-error');
+
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok) {
+            // 登入成功，跳轉到後台會員中心
+            window.location.href = '/dashboard.html';
+        } else {
+            errorDiv.style.display = 'block';
+            errorDiv.innerText = '登入失敗，請檢查帳號密碼';
+        }
+    });
+</script>
+</body>
+</html>

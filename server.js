@@ -6,6 +6,7 @@ const passport = require('passport');       // 引入 Passport
 require('dotenv').config();
 
 const app = express();
+app.use(express.static('public'));
 
 // 中間件設定
 app.use(express.json());
@@ -56,7 +57,7 @@ app.use('/auth', authRoutes);
 
 // 首頁
 app.get('/', (req, res) => {
-  res.send('<h1>Node.js 雲端伺服器運行中！</h1><p>API 驗證功能已就緒。</p>');
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 // 監聽埠
